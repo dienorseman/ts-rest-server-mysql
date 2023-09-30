@@ -1,9 +1,5 @@
 import { Sequelize } from 'sequelize';
 
-// Load environment variables
-import dotenv from 'dotenv';
-dotenv.config();
-
 const dbName = process.env.DB_NAME || 'test';
 const dbUser = process.env.DB_USER || 'root';
 
