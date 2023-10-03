@@ -28,11 +28,32 @@ export const postUser = async ( req: Request, res: Response ) => {
 
     const { body } = req;
 
-    const user = User.build( body );
+    try {
+            
+            const emailExists = await User.findOne( {
+                where: {
+                    email: body.email
+                }
+            } );
+    
+            if ( emailExists ) {
+                return res.status(400).json({
+                    msg: `User with email ${ body.email } already exists.`
+                })
+            }
+    
+            const user = User.build( body );
+    
+            await user.save();
+    
+            res.json( user );
 
-    await user.save();
-     
-    res.json( { user } );
+    } catch ( err ) {
+        console.log( err );
+        res.status(500).json({
+            msg: 'Talk to the admin'
+        })
+    }
 }
 
 export const putUser = async ( req: Request, res: Response ) => {
@@ -40,17 +61,41 @@ export const putUser = async ( req: Request, res: Response ) => {
     const { id } = req.params;
     const { body } = req;
 
-    const user = await User.findByPk( id );
+    try {
 
-    if ( !user ) {
-        return res.status(404).json({
-            msg: `User with id ${ id } not found`
+        const user = await User.findByPk( id );
+
+        if ( !user ) {
+            return res.status(404).json({
+                msg: `User with id ${ id } not found`
+            })
+        }
+
+        if ( body.email ) {
+
+            const emailExists = await User.findOne( {
+                where: {
+                    email: body.email
+                }
+            } );
+    
+            if ( emailExists ) {
+                return res.status(400).json({
+                    msg: `Cannot update an existing email.`
+                })
+            }
+        }
+
+        await user.update( body );
+
+        res.json( user );
+
+    } catch ( err ) {
+        console.log( err );
+        res.status(500).json({
+            msg: 'Talk to the admin'
         })
     }
-
-    await user.update( body );
-
-    res.json( user );
 }
 
 export const deleteUser = async ( req: Request, res: Response ) => {
